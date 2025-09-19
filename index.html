@@ -711,6 +711,10 @@
         } else {
           handleError('AuraFlow backend is unavailable.');
         }
+        google.script.run
+          .withSuccessHandler(handleEnv)
+          .withFailureHandler(err => handleError('Unable to reach AuraFlow. ' + err.message))
+          .getEnv_();
       }
 
       function handleEnv(res) {
