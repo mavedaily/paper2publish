@@ -95,6 +95,9 @@ function getEnv_() {
   return { success: true, data: data };
 }
 
+function getEnv() {
+  return getEnv_();
+}
 function ensureSpreadsheet_() {
   if (!SPREADSHEET_ID || SPREADSHEET_ID === 'PUT_YOUR_SHEET_ID_HERE') {
     return { success: false, message: 'INVALID_SPREADSHEET_ID' };

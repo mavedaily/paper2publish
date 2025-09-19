@@ -701,6 +701,16 @@
 
       function bootstrap() {
         setStatus('Validating workspace…');
+        const runner = google.script.run
+          .withSuccessHandler(handleEnv)
+          .withFailureHandler(err => handleError('Unable to reach AuraFlow. ' + err.message));
+        if (typeof runner.getEnv_ === 'function') {
+          runner.getEnv_();
+        } else if (typeof runner.getEnv === 'function') {
+          runner.getEnv();
+        } else {
+          handleError('AuraFlow backend is unavailable.');
+        }
         google.script.run
           .withSuccessHandler(handleEnv)
           .withFailureHandler(err => handleError('Unable to reach AuraFlow. ' + err.message))
