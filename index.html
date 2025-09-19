@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>AuraFlow</title>
+    <base target="_top">
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+        background: #f5f7fb;
+        color: #202124;
+      }
+      #app {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 24px;
+        background: #ffffff;
+        border-bottom: 1px solid #e0e3eb;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 22px;
+        font-weight: 600;
+        color: #1f2933;
+      }
+      .brand img {
+        width: 32px;
+        height: 32px;
+      }
+      .session-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        color: #5f6368;
+      }
+      .session-info strong {
+        color: #1f2933;
+      }
+      .tab-bar {
+        display: flex;
+        gap: 4px;
+        padding: 12px 24px 0;
+        flex-wrap: wrap;
+        background: #ffffff;
+        border-bottom: 1px solid #e0e3eb;
+      }
+      .tab-button {
+        border: none;
+        background: #edf1fb;
+        color: #3a4753;
+        border-radius: 999px;
+        padding: 8px 18px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+      .tab-button.active {
+        background: #1a73e8;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);
+      }
+      main {
+        flex: 1;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .tab-pane {
+        display: none;
+      }
+      .tab-pane.active {
+        display: block;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .grid.cards {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(15, 35, 95, 0.08);
+        border: 1px solid rgba(142, 159, 189, 0.16);
+      }
+      .card h3 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        color: #1f2933;
+      }
+      .card p {
+        margin: 4px 0 0;
+        color: #5f6368;
+        font-size: 13px;
+      }
+      .status-message {
+        margin: 16px 24px 0;
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: #fff3cd;
+        color: #8c6d1f;
+        border: 1px solid #ffe8a1;
+      }
+      .status-message.error {
+        background: #fde7e9;
+        border-color: #f7c5c9;
+        color: #a1262d;
+      }
+      .status-message.hidden {
+        display: none;
+      }
+      .task-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .chip-group,
+      .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        border: none;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: #e8eefc;
+        color: #3a4753;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .chip.active {
+        background: #1a73e8;
+        color: #ffffff;
+        box-shadow: 0 6px 16px rgba(26, 115, 232, 0.25);
+      }
+      .chip.toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .search-input {
+        position: relative;
+        flex: 1;
+        min-width: 220px;
+      }
+      .search-input input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid #ccd4e0;
+        background: #ffffff;
+      }
+      .select {
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid #ccd4e0;
+        background: #ffffff;
+      }
+      .task-list {
+        display: grid;
+        gap: 16px;
+      }
+      .task-card {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 18px;
+        border-left: 6px solid transparent;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .task-card.high {
+        border-left-color: #f87171;
+      }
+      .task-card.normal {
+        border-left-color: #60a5fa;
+      }
+      .task-card.low {
+        border-left-color: #34d399;
+      }
+      .task-card.done {
+        opacity: 0.75;
+      }
+      .task-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+      }
+      .task-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2933;
+      }
+      .badge {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .badge.priority-high {
+        background: rgba(248, 113, 113, 0.15);
+        color: #b91c1c;
+      }
+      .badge.priority-low {
+        background: rgba(16, 185, 129, 0.18);
+        color: #047857;
+      }
+      .badge.priority-normal {
+        background: rgba(96, 165, 250, 0.18);
+        color: #1d4ed8;
+      }
+      .badge.status-todo {
+        background: rgba(148, 163, 184, 0.28);
+        color: #1f2933;
+      }
+      .badge.status-doing {
+        background: rgba(96, 165, 250, 0.25);
+        color: #1d4ed8;
+      }
+      .badge.status-blocked {
+        background: rgba(251, 191, 36, 0.32);
+        color: #b45309;
+      }
+      .badge.status-done {
+        background: rgba(16, 185, 129, 0.24);
+        color: #047857;
+      }
+      .task-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 12px;
+        color: #5f6368;
+      }
+      .task-desc {
+        font-size: 13px;
+        color: #3a4753;
+        margin: 0;
+        white-space: pre-wrap;
+      }
+      .task-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      button.primary {
+        background: #1a73e8;
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: transform 0.2s ease;
+      }
+      button.primary:hover {
+        transform: translateY(-1px);
+      }
+      button.ghost {
+        border: 1px solid #ccd4e0;
+        background: #ffffff;
+        color: #1f2933;
+        border-radius: 10px;
+        padding: 8px 14px;
+        cursor: pointer;
+      }
+      button.danger {
+        border: none;
+        background: #dc2626;
+        color: #ffffff;
+        border-radius: 10px;
+        padding: 8px 14px;
+        cursor: pointer;
+      }
+      form.inline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+      form.inline input,
+      form.inline textarea,
+      form.inline select {
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid #ccd4e0;
+        background: #ffffff;
+        font-size: 14px;
+      }
+      form.inline textarea {
+        min-width: 240px;
+        min-height: 80px;
+      }
+      .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 12px;
+        color: #1f2933;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #ffffff;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      }
+      th, td {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 13px;
+        border-bottom: 1px solid #eef1f6;
+      }
+      th {
+        background: #f8fafc;
+        color: #3a4753;
+        font-weight: 600;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      .tools-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .tool-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .tool-card img {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        object-fit: contain;
+      }
+      .tool-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      details summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #1a73e8;
+      }
+      .app-footer {
+        background: #f1f3f4;
+        text-align: center;
+        padding: 16px;
+        font-size: 12px;
+        color: #5f6368;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: center;
+      }
+      .app-footer img {
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+        margin-right: 6px;
+      }
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #1a73e8;
+        color: #ffffff;
+        padding: 14px 18px;
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(26, 115, 232, 0.35);
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        z-index: 999;
+      }
+      .toast.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .hidden {
+        display: none !important;
+      }
+      .spinner {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 4px solid rgba(26, 115, 232, 0.25);
+        border-top-color: #1a73e8;
+        animation: spin 1s linear infinite;
+        margin: 24px auto;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      @media (max-width: 768px) {
+        .app-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .session-info {
+          align-self: stretch;
+          justify-content: space-between;
+        }
+        .task-head {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .task-actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <div class="brand">
+          <img src="https://images.emojiterra.com/google/noto-emoji/unicode-16.0/color/svg/1f300.svg" alt="AuraFlow logo">
+          <span>AuraFlow</span>
+        </div>
+        <div class="session-info">
+          <span id="userBadge">Connecting…</span>
+          <button id="adminQuickAdd" class="ghost hidden">Add current Google account</button>
+        </div>
+      </header>
+      <div id="statusMessage" class="status-message hidden"></div>
+      <nav class="tab-bar">
+        <button class="tab-button active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-button" data-tab="tasks">Tasks</button>
+        <button class="tab-button" data-tab="users">Users</button>
+        <button class="tab-button" data-tab="tools">Tools</button>
+        <button class="tab-button" data-tab="settings">Settings / Help</button>
+      </nav>
+      <main>
+        <section id="tab-dashboard" class="tab-pane active">
+          <h2 class="section-title">Team pulse</h2>
+          <div id="dashboardContent" class="grid cards"></div>
+        </section>
+        <section id="tab-tasks" class="tab-pane">
+          <div class="task-controls">
+            <div class="chip-group" id="viewChips">
+              <button class="chip active" data-view="my">My</button>
+              <button class="chip" data-view="team">Team</button>
+              <button class="chip" data-view="all">All</button>
+              <button class="chip toggle" id="toggleCompleted">👁 Show Completed</button>
+              <button class="chip toggle" id="toggleOverdue">⚠️ Overdue Only</button>
+            </div>
+            <div class="chip-group" id="statusChips">
+              <button class="chip" data-status="Todo">Todo</button>
+              <button class="chip" data-status="Doing">Doing</button>
+              <button class="chip" data-status="Blocked">Blocked</button>
+              <button class="chip" data-status="Done">Done</button>
+            </div>
+            <div class="filter-row">
+              <div class="search-input">
+                <input type="search" id="taskSearch" placeholder="Search tasks, tags, assignees…">
+              </div>
+              <select id="sortSelect" class="select">
+                <option value="dueDate|asc">Sort by Due Date ↑</option>
+                <option value="dueDate|desc">Sort by Due Date ↓</option>
+                <option value="priority|asc">Priority ↑</option>
+                <option value="priority|desc">Priority ↓</option>
+                <option value="status|asc">Status ↑</option>
+                <option value="status|desc">Status ↓</option>
+              </select>
+              <button id="exportTasks" class="ghost">⬇️ Export CSV</button>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h3>Quick add</h3>
+            <form id="quickTaskForm" class="inline">
+              <input type="text" name="title" placeholder="Task title" required>
+              <input type="email" name="assignedTo" placeholder="Assignee email" required>
+              <input type="date" name="dueDate" placeholder="Due date">
+              <button type="submit" class="primary">Add</button>
+            </form>
+            <details style="margin-top:12px;">
+              <summary>Full task composer</summary>
+              <form id="taskForm" class="inline" style="margin-top:12px;">
+                <input type="hidden" name="id">
+                <input type="text" name="title" placeholder="Task title" required>
+                <textarea name="description" placeholder="Description"></textarea>
+                <input type="email" name="assignedTo" placeholder="Assignee email" required>
+                <select name="priority">
+                  <option value="Normal">Priority: Normal</option>
+                  <option value="High">Priority: High</option>
+                  <option value="Low">Priority: Low</option>
+                </select>
+                <select name="status">
+                  <option value="Todo">Status: Todo</option>
+                  <option value="Doing">Status: Doing</option>
+                  <option value="Blocked">Status: Blocked</option>
+                  <option value="Done">Status: Done</option>
+                </select>
+                <input type="date" name="dueDate">
+                <input type="number" min="0" step="0.25" name="estimatedHours" placeholder="Estimated hours">
+                <input type="text" name="tags" placeholder="Tags (comma separated)">
+                <input type="url" name="links" placeholder="Reference links">
+                <div style="display:flex;gap:8px;">
+                  <button type="submit" class="primary" id="taskFormSubmit">Save task</button>
+                  <button type="button" class="ghost hidden" id="taskFormCancel">Cancel edit</button>
+                </div>
+              </form>
+            </details>
+          </div>
+          <div id="taskSummary" class="grid cards" style="margin-bottom:16px;"></div>
+          <div id="taskList" class="task-list"></div>
+          <div id="taskLoader" class="spinner hidden"></div>
+          <button id="loadMoreTasks" class="ghost hidden">Load more</button>
+        </section>
+        <section id="tab-users" class="tab-pane">
+          <div class="card" style="margin-bottom:16px;">
+            <h3>Invite a teammate</h3>
+            <form id="userForm" class="inline">
+              <input type="text" name="firstName" placeholder="First name" required>
+              <input type="text" name="lastName" placeholder="Last name">
+              <input type="email" name="email" placeholder="Work email" required>
+              <input type="email" name="notificationEmail" placeholder="Notification email" required>
+              <select name="role" required>
+                <option value="USER">User</option>
+                <option value="MANAGER">Manager</option>
+                <option value="ADMIN">Admin</option>
+                <option value="MASTER_ADMIN">Master Admin</option>
+              </select>
+              <button type="submit" class="primary">Create user</button>
+            </form>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h3>Directory</h3>
+              <button id="refreshUsers" class="ghost">Refresh</button>
+            </div>
+            <div class="table-wrapper">
+              <table id="usersTable">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Notification</th>
+                    <th>Updated</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <section id="tab-tools" class="tab-pane">
+          <div class="card" id="toolFormCard" style="margin-bottom:16px;">
+            <h3>Tool catalog</h3>
+            <form id="toolForm" class="inline">
+              <input type="hidden" name="id">
+              <input type="url" name="iconUrl" placeholder="Icon URL">
+              <input type="text" name="name" placeholder="Tool name" required>
+              <input type="url" name="toolUrl" placeholder="https://" required>
+              <input type="number" step="1" name="sortOrder" placeholder="Sort order">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;">
+                <input type="checkbox" name="isActive" checked> Active
+              </label>
+              <div style="display:flex;gap:8px;">
+                <button type="submit" class="primary" id="toolSubmit">Save tool</button>
+                <button type="button" class="ghost hidden" id="toolCancel">Cancel edit</button>
+              </div>
+            </form>
+          </div>
+          <div id="toolsList" class="tools-grid"></div>
+        </section>
+        <section id="tab-settings" class="tab-pane">
+          <div class="grid" style="gap:16px;">
+            <div class="card">
+              <h3>Notifications</h3>
+              <form id="settingsForm" class="inline">
+                <input type="email" name="notificationEmail" placeholder="Notification email">
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;">
+                  <input type="checkbox" name="instant" checked> Instant assignment alerts
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;">
+                  <input type="checkbox" name="daily" checked> Daily digest
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;">
+                  <input type="checkbox" name="weekly" checked> Weekly digest
+                </label>
+                <div style="display:flex;gap:8px;">
+                  <button type="submit" class="primary">Save settings</button>
+                  <button type="button" id="sendTestEmail" class="ghost">Send test email</button>
+                </div>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Tutorial</h3>
+              <ol style="margin:0;padding-left:20px;color:#3a4753;font-size:13px;line-height:1.6;">
+                <li>Review dashboard highlights</li>
+                <li>Explore your tasks and apply filters</li>
+                <li>Confirm notification email settings</li>
+              </ol>
+              <button id="completeTutorial" class="primary" style="margin-top:12px;">Mark tutorial complete</button>
+            </div>
+            <div class="card">
+              <h3>Help &amp; resources</h3>
+              <details open>
+                <summary>Quick start</summary>
+                <p>Use the Tasks tab to capture work, assign teammates, and track progress. Filters keep focus tight.</p>
+              </details>
+              <details>
+                <summary>CSV import template</summary>
+                <p>Download a ready template, fill task rows, and upload via the Tasks tab import action.</p>
+                <button id="downloadTemplate" class="ghost" style="margin-top:8px;">Download template</button>
+              </details>
+              <details>
+                <summary>Role visibility</summary>
+                <p><strong>Admins</strong> see everything. <strong>Managers</strong> see their direct team. <strong>Users</strong> see tasks assigned to them.</p>
+              </details>
+              <details>
+                <summary>Email delivery</summary>
+                <p>Assignment alerts are instant. Digests send daily at 6:00 PM IST and weekly on Sundays at 10:00 AM IST.</p>
+              </details>
+              <details>
+                <summary>Google Sign-In</summary>
+                <p>AuraFlow respects your Google account. Stay signed in with the correct profile before opening the app.</p>
+              </details>
+            </div>
+          </div>
+        </section>
+      </main>
+      <footer class="app-footer">
+        <div>AuraFlow by Aura One Labs</div>
+        <div><img src="https://images.emojiterra.com/google/noto-emoji/unicode-16.0/color/svg/1f300.svg" alt="AuraFlow swirl">Rare Aura Media Group</div>
+      </footer>
+    </div>
+    <div id="toast" class="toast hidden"></div>
+    <script>
+      const LOGO_URL = 'https://images.emojiterra.com/google/noto-emoji/unicode-16.0/color/svg/1f300.svg';
+      const ROLE_ORDER = ['MASTER_ADMIN', 'ADMIN', 'MANAGER', 'USER'];
+      const appState = {
+        env: null,
+        session: null,
+        activeTab: 'dashboard',
+        loadedTabs: { dashboard: false, tasks: false, users: false, tools: false, settings: false },
+        tasks: {
+          filters: {
+            view: 'my',
+            includeDone: false,
+            statusFilters: [],
+            overdueOnly: false,
+            q: '',
+            sortBy: 'dueDate',
+            sortDir: 'asc'
+          },
+          rows: [],
+          nextPageToken: '',
+          totals: null,
+          activeTimer: null
+        },
+        users: [],
+        tools: [],
+        debounceHandles: {}
+      };
+
+      document.addEventListener('DOMContentLoaded', () => {
+        setupEventListeners();
+        bootstrap();
+      });
+
+      function bootstrap() {
+        setStatus('Validating workspace…');
+        const runner = google.script.run
+          .withSuccessHandler(handleEnv)
+          .withFailureHandler(err => handleError('Unable to reach AuraFlow. ' + err.message));
+        if (typeof runner.getEnv_ === 'function') {
+          runner.getEnv_();
+        } else if (typeof runner.getEnv === 'function') {
+          runner.getEnv();
+        } else {
+          handleError('AuraFlow backend is unavailable.');
+        }
+      }
+
+      function handleEnv(res) {
+        if (!res || !res.success) {
+          handleError('Spreadsheet configuration missing. Ask an admin to set SPREADSHEET_ID in Code.gs.');
+          return;
+        }
+        appState.env = res.data;
+        fetchSession();
+      }
+
+      function fetchSession() {
+        setStatus('Signing you in…');
+        google.script.run
+          .withSuccessHandler(res => {
+            if (!res || !res.success) {
+              const message = (res && res.message) || 'ACCESS_DENIED';
+              if (message === 'GOOGLE_SIGN_IN_REQUIRED') {
+                handleError('Sign in to Google with an authorized account and reopen AuraFlow.');
+                return;
+              }
+              if (message === 'ACCESS_DENIED') {
+                handleError('Access denied. Ask an AuraFlow admin to add your Google account in the Users tab.');
+                return;
+              }
+              handleError(message);
+              return;
+            }
+            clearStatus();
+            appState.session = res.data;
+            updateHeader();
+            setupAdminUtilities();
+            switchTab('dashboard', true);
+          })
+          .withFailureHandler(err => handleError('Authentication failed: ' + err.message))
+          .currentSession();
+      }
+
+      function setupEventListeners() {
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+        document.getElementById('quickTaskForm').addEventListener('submit', handleQuickTaskSubmit);
+        document.getElementById('taskForm').addEventListener('submit', handleTaskFormSubmit);
+        document.getElementById('taskFormCancel').addEventListener('click', resetTaskForm);
+        document.getElementById('taskSearch').addEventListener('input', handleTaskSearch);
+        document.getElementById('sortSelect').addEventListener('change', handleSortChange);
+        document.getElementById('toggleCompleted').addEventListener('click', toggleCompleted);
+        document.getElementById('toggleOverdue').addEventListener('click', toggleOverdue);
+        document.getElementById('loadMoreTasks').addEventListener('click', () => loadTasks(false));
+        document.getElementById('taskList').addEventListener('click', handleTaskListAction);
+        document.getElementById('statusChips').addEventListener('click', handleStatusChip);
+        document.getElementById('viewChips').addEventListener('click', handleViewChip);
+        document.getElementById('exportTasks').addEventListener('click', exportTasks);
+        document.getElementById('userForm').addEventListener('submit', handleUserSubmit);
+        document.getElementById('refreshUsers').addEventListener('click', loadUsers);
+        document.getElementById('toolForm').addEventListener('submit', handleToolSubmit);
+        document.getElementById('toolCancel').addEventListener('click', resetToolForm);
+        document.getElementById('settingsForm').addEventListener('submit', handleSettingsSubmit);
+        document.getElementById('sendTestEmail').addEventListener('click', sendTestEmail);
+        document.getElementById('completeTutorial').addEventListener('click', markTutorialComplete);
+        document.getElementById('downloadTemplate').addEventListener('click', downloadTemplate);
+      }
+
+      function updateHeader() {
+        const badge = document.getElementById('userBadge');
+        const user = appState.session.user;
+        badge.textContent = user ? `${user.email} · ${user.role.replace('_', ' ')}` : 'Unknown user';
+      }
+
+      function setupAdminUtilities() {
+        const adminBtn = document.getElementById('adminQuickAdd');
+        if (isRoleAtLeast(appState.session.user.role, 'ADMIN')) {
+          adminBtn.classList.remove('hidden');
+          adminBtn.addEventListener('click', () => {
+            adminBtn.disabled = true;
+            google.script.run
+              .withSuccessHandler(res => {
+                adminBtn.disabled = false;
+                if (res && res.success) {
+                  showToast('Account registered. Refreshing users.');
+                  loadUsers();
+                } else {
+                  handleError((res && res.message) || 'Unable to add account');
+                }
+              })
+              .withFailureHandler(err => {
+                adminBtn.disabled = false;
+                handleError(err.message);
+              })
+              .adminQuickAddSelf({
+                role: appState.session.user.role,
+                firstName: '',
+                lastName: '',
+                notificationEmail: appState.session.user.email
+              });
+          }, { once: true });
+        }
+      }
+
+      function switchTab(tab, forceReload = false) {
+        if (appState.activeTab === tab && !forceReload) {
+          return;
+        }
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.tab === tab);
+        });
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+          pane.classList.toggle('active', pane.id === `tab-${tab}`);
+        });
+        appState.activeTab = tab;
+        if (!appState.loadedTabs[tab] || forceReload) {
+          if (tab === 'dashboard') {
+            loadDashboard();
+          } else if (tab === 'tasks') {
+            loadTasks(true);
+          } else if (tab === 'users') {
+            loadUsers();
+          } else if (tab === 'tools') {
+            loadTools();
+          } else if (tab === 'settings') {
+            populateSettings();
+          }
+          appState.loadedTabs[tab] = true;
+        }
+      }
+
+      function setStatus(message, isError = false) {
+        const status = document.getElementById('statusMessage');
+        status.textContent = message;
+        status.classList.toggle('hidden', !message);
+        status.classList.toggle('error', isError);
+      }
+
+      function clearStatus() {
+        setStatus('');
+      }
+
+      function handleError(message) {
+        setStatus(message, true);
+        showToast(message, true);
+      }
+
+      function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.background = isError ? '#d93025' : '#1a73e8';
+        toast.classList.remove('hidden');
+        requestAnimationFrame(() => toast.classList.add('visible'));
+        clearTimeout(appState.debounceHandles.toast);
+        appState.debounceHandles.toast = setTimeout(() => {
+          toast.classList.remove('visible');
+          setTimeout(() => toast.classList.add('hidden'), 300);
+        }, 3500);
+      }
+
+      function isRoleAtLeast(role, minimum) {
+        return ROLE_ORDER.indexOf(role) <= ROLE_ORDER.indexOf(minimum);
+      }
+
+      function escapeHtml(text) {
+        return String(text || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+      function loadDashboard() {
+        const container = document.getElementById('dashboardContent');
+        container.innerHTML = '<div class="spinner"></div>';
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              renderDashboard(res.data);
+            } else {
+              container.innerHTML = `<p>${(res && res.message) || 'Unable to load metrics.'}</p>`;
+            }
+          })
+          .withFailureHandler(err => {
+            container.innerHTML = `<p>${err.message}</p>`;
+          })
+          .getDashboardMetrics();
+      }
+
+      function renderDashboard(data) {
+        const container = document.getElementById('dashboardContent');
+        if (!data) {
+          container.innerHTML = '<p>No metrics available.</p>';
+          return;
+        }
+        container.innerHTML = `
+          <div class="card">
+            <h3>Total tasks</h3>
+            <p style="font-size:28px;font-weight:700;">${data.total || 0}</p>
+            <p>${data.dueSoon || 0} due soon · ${data.overdue || 0} overdue</p>
+          </div>
+          <div class="card">
+            <h3>Status spread</h3>
+            <p>Todo: ${data.byStatus.Todo || 0}</p>
+            <p>Doing: ${data.byStatus.Doing || 0}</p>
+            <p>Blocked: ${data.byStatus.Blocked || 0}</p>
+            <p>Done: ${data.byStatus.Done || 0}</p>
+          </div>
+          <div class="card">
+            <h3>My focus</h3>
+            <p style="font-size:24px;font-weight:600;">${data.myTotals.count || 0} tasks</p>
+            <p>Time tracked: ${(data.myTotals.mySeconds / 3600 || 0).toFixed(1)} hrs</p>
+          </div>
+          <div class="card">
+            <h3>Team time</h3>
+            <p style="font-size:24px;font-weight:600;">${(data.teamTotals.totalSeconds / 3600 || 0).toFixed(1)} hrs logged</p>
+            <p>Estimates: ${(data.teamTotals.totalEstimatedHours || 0).toFixed(1)} hrs</p>
+          </div>
+        `;
+      }
+
+      function loadTasks(reset = false) {
+        if (reset) {
+          appState.tasks.rows = [];
+          appState.tasks.nextPageToken = '';
+          renderTasks();
+        }
+        const loader = document.getElementById('taskLoader');
+        loader.classList.remove('hidden');
+        const filters = appState.tasks.filters;
+        const payload = {
+          view: filters.view,
+          includeDone: filters.includeDone,
+          statusFilters: filters.statusFilters,
+          overdueOnly: filters.overdueOnly,
+          q: filters.q,
+          sortBy: filters.sortBy,
+          sortDir: filters.sortDir,
+          pageToken: reset ? '0' : appState.tasks.rows.length.toString(),
+          pageSize: 50
+        };
+        google.script.run
+          .withSuccessHandler(res => {
+            loader.classList.add('hidden');
+            if (res && res.success) {
+              const incoming = res.data.rows || [];
+              appState.tasks.rows = reset ? incoming : appState.tasks.rows.concat(incoming);
+              appState.tasks.nextPageToken = res.data.nextPageToken || '';
+              appState.tasks.totals = res.data.totals || null;
+              renderTasks();
+            } else {
+              handleError((res && res.message) || 'Unable to load tasks');
+            }
+          })
+          .withFailureHandler(err => {
+            loader.classList.add('hidden');
+            handleError(err.message);
+          })
+          .getTasks(payload);
+      }
+
+      function renderTasks() {
+        const list = document.getElementById('taskList');
+        const summary = document.getElementById('taskSummary');
+        const totals = appState.tasks.totals;
+        if (totals) {
+          summary.innerHTML = `
+            <div class="card"><h3>Visible tasks</h3><p style="font-size:24px;font-weight:600;">${totals.count || 0}</p></div>
+            <div class="card"><h3>Todo</h3><p>${totals.byStatus ? totals.byStatus.Todo || 0 : 0}</p></div>
+            <div class="card"><h3>Doing</h3><p>${totals.byStatus ? totals.byStatus.Doing || 0 : 0}</p></div>
+            <div class="card"><h3>Blocked</h3><p>${totals.byStatus ? totals.byStatus.Blocked || 0 : 0}</p></div>
+          `;
+        } else {
+          summary.innerHTML = '';
+        }
+        if (!appState.tasks.rows.length) {
+          list.innerHTML = '<div class="card"><p>No tasks match the current filters.</p></div>';
+        } else {
+          list.innerHTML = appState.tasks.rows.map(renderTaskCard).join('');
+        }
+        document.getElementById('loadMoreTasks').classList.toggle('hidden', !appState.tasks.nextPageToken);
+      }
+
+      function renderTaskCard(task) {
+        const priorityClass = (task.priority || 'Normal').toLowerCase();
+        const statusClass = (task.status || 'Todo').toLowerCase();
+        const due = task.dueDate ? `<span>📅 ${task.dueDate}</span>` : '';
+        const tags = task.tags ? task.tags.split(',').map(t => t.trim()).filter(Boolean).map(t => `<span class="badge">#${escapeHtml(t)}</span>`).join(' ') : '';
+        const timerActive = appState.tasks.activeTimer && appState.tasks.activeTimer.taskId === task.id;
+        return `
+          <article class="task-card ${priorityClass} ${statusClass} ${task.status === 'Done' ? 'done' : ''}" data-id="${task.id}">
+            <div class="task-head">
+              <div class="task-title">${escapeHtml(task.title)}</div>
+              <div>
+                <span class="badge priority-${priorityClass}">${task.priority}</span>
+                <span class="badge status-${statusClass}">${task.status}</span>
+              </div>
+            </div>
+            <div class="task-meta">
+              ${due}
+              <span>👤 ${escapeHtml(task.assignedTo)}</span>
+              <span>⏱ ${(task.totalSeconds / 3600 || 0).toFixed(1)}h</span>
+              ${task.estimatedHours ? `<span>Estimate ${Number(task.estimatedHours).toFixed(1)}h</span>` : ''}
+            </div>
+            ${task.description ? `<p class="task-desc">${escapeHtml(task.description)}</p>` : ''}
+            ${task.links ? `<p class="task-meta">🔗 <a href="${escapeHtml(task.links)}" target="_blank" rel="noopener">Reference</a></p>` : ''}
+            ${tags ? `<div class="task-meta">${tags}</div>` : ''}
+            <div class="task-actions">
+              ${task.status !== 'Done' ? `<button class="primary" data-action="done" data-id="${task.id}">Mark done</button>` : ''}
+              <button class="ghost" data-action="edit" data-id="${task.id}">Edit</button>
+              <button class="ghost" data-action="timer" data-id="${task.id}">${timerActive ? 'Stop timer' : 'Start timer'}</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function handleQuickTaskSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const payload = {
+          title: form.title.value.trim(),
+          assignedTo: form.assignedTo.value.trim(),
+          dueDate: form.dueDate.value
+        };
+        if (!payload.title || !payload.assignedTo) {
+          showToast('Title and assignee email are required.', true);
+          return;
+        }
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              showToast('Task created.');
+              form.reset();
+              loadTasks(true);
+              loadDashboard();
+            } else {
+              handleError((res && res.message) || 'Unable to create task');
+            }
+          })
+          .withFailureHandler(err => handleError(err.message))
+          .createTask(payload);
+      }
+
+      function handleTaskFormSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const data = Object.fromEntries(new FormData(form).entries());
+        data.estimatedHours = data.estimatedHours ? Number(data.estimatedHours) : '';
+        const handler = data.id ? 'updateTask' : 'createTask';
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              showToast(data.id ? 'Task updated.' : 'Task created.');
+              form.reset();
+              document.getElementById('taskFormCancel').classList.add('hidden');
+              loadTasks(true);
+              loadDashboard();
+            } else {
+              handleError((res && res.message) || 'Unable to save task');
+            }
+          })
+          .withFailureHandler(err => handleError(err.message))
+          [handler](data);
+      }
+
+      function handleTaskListAction(event) {
+        const button = event.target.closest('button');
+        if (!button) return;
+        const taskId = button.dataset.id;
+        if (!taskId) return;
+        const action = button.dataset.action;
+        if (action === 'done') {
+          google.script.run
+            .withSuccessHandler(res => {
+              if (res && res.success) {
+                showToast('Task marked done.');
+                loadTasks(true);
+                loadDashboard();
+              } else {
+                handleError((res && res.message) || 'Unable to mark done');
+              }
+            })
+            .withFailureHandler(err => handleError(err.message))
+            .markDone({ taskId });
+        } else if (action === 'edit') {
+          const task = appState.tasks.rows.find(t => t.id === taskId);
+          if (task) {
+            populateTaskForm(task);
+          }
+        } else if (action === 'timer') {
+          if (appState.tasks.activeTimer && appState.tasks.activeTimer.taskId === taskId) {
+            google.script.run
+              .withSuccessHandler(res => {
+                if (res && res.success) {
+                  appState.tasks.activeTimer = null;
+                  showToast('Timer stopped.');
+                  loadTasks(true);
+                } else {
+                  handleError((res && res.message) || 'Unable to stop timer');
+                }
+              })
+              .withFailureHandler(err => handleError(err.message))
+              .stopTimer(taskId);
+          } else {
+            google.script.run
+              .withSuccessHandler(res => {
+                if (res && res.success) {
+                  appState.tasks.activeTimer = { taskId, logId: res.data ? res.data.id : null };
+                  showToast('Timer started.');
+                  renderTasks();
+                } else {
+                  handleError((res && res.message) || 'Unable to start timer');
+                }
+              })
+              .withFailureHandler(err => handleError(err.message))
+              .startTimer(taskId);
+          }
+        }
+      }
+
+      function populateTaskForm(task) {
+        const form = document.getElementById('taskForm');
+        form.id.value = task.id;
+        form.title.value = task.title;
+        form.description.value = task.description || '';
+        form.assignedTo.value = task.assignedTo;
+        form.priority.value = task.priority || 'Normal';
+        form.status.value = task.status || 'Todo';
+        form.dueDate.value = task.dueDate || '';
+        form.estimatedHours.value = task.estimatedHours || '';
+        form.tags.value = task.tags || '';
+        form.links.value = task.links || '';
+        document.getElementById('taskFormCancel').classList.remove('hidden');
+        showToast('Editing task…');
+      }
+
+      function resetTaskForm() {
+        const form = document.getElementById('taskForm');
+        form.reset();
+        form.id.value = '';
+        document.getElementById('taskFormCancel').classList.add('hidden');
+      }
+
+      function handleTaskSearch(event) {
+        clearTimeout(appState.debounceHandles.search);
+        const value = event.target.value.trim();
+        appState.debounceHandles.search = setTimeout(() => {
+          appState.tasks.filters.q = value;
+          loadTasks(true);
+        }, 300);
+      }
+
+      function handleSortChange(event) {
+        const [sortBy, sortDir] = event.target.value.split('|');
+        appState.tasks.filters.sortBy = sortBy;
+        appState.tasks.filters.sortDir = sortDir;
+        loadTasks(true);
+      }
+
+      function toggleCompleted() {
+        appState.tasks.filters.includeDone = !appState.tasks.filters.includeDone;
+        document.getElementById('toggleCompleted').classList.toggle('active', appState.tasks.filters.includeDone);
+        loadTasks(true);
+      }
+
+      function toggleOverdue() {
+        appState.tasks.filters.overdueOnly = !appState.tasks.filters.overdueOnly;
+        document.getElementById('toggleOverdue').classList.toggle('active', appState.tasks.filters.overdueOnly);
+        loadTasks(true);
+      }
+
+      function handleStatusChip(event) {
+        const chip = event.target.closest('.chip');
+        if (!chip || !chip.dataset.status) return;
+        const status = chip.dataset.status;
+        const filters = appState.tasks.filters.statusFilters;
+        if (filters.includes(status)) {
+          appState.tasks.filters.statusFilters = filters.filter(s => s !== status);
+          chip.classList.remove('active');
+        } else {
+          appState.tasks.filters.statusFilters = filters.concat(status);
+          chip.classList.add('active');
+        }
+        loadTasks(true);
+      }
+
+      function handleViewChip(event) {
+        const chip = event.target.closest('.chip');
+        if (!chip || !chip.dataset.view) return;
+        appState.tasks.filters.view = chip.dataset.view;
+        document.querySelectorAll('#viewChips .chip').forEach(btn => btn.classList.toggle('active', btn.dataset.view === chip.dataset.view));
+        loadTasks(true);
+      }
+
+      function exportTasks() {
+        if (!appState.env || !appState.env.appUrl) {
+          handleError('App URL unavailable for export.');
+          return;
+        }
+        const filters = appState.tasks.filters;
+        const params = new URLSearchParams({
+          action: 'exportTasks',
+          view: filters.view,
+          q: filters.q || '',
+          includeDone: filters.includeDone,
+          overdue: filters.overdueOnly,
+          status: filters.statusFilters.join(',')
+        });
+        window.open(`${appState.env.appUrl}?${params.toString()}`, '_blank', 'noopener');
+      }
+      function loadUsers() {
+        const tbody = document.querySelector('#usersTable tbody');
+        tbody.innerHTML = '<tr><td colspan="6">Loading…</td></tr>';
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              appState.users = res.data || [];
+              tbody.innerHTML = appState.users.map(user => `
+                <tr>
+                  <td>${escapeHtml((user.firstName || '') + ' ' + (user.lastName || '')).trim()}</td>
+                  <td>${escapeHtml(user.email)}</td>
+                  <td>${user.role}</td>
+                  <td>${user.isActive ? 'Active' : 'Inactive'}</td>
+                  <td>${escapeHtml(user.notificationEmail || '')}</td>
+                  <td>${user.updatedAt || ''}</td>
+                </tr>
+              `).join('');
+            } else {
+              tbody.innerHTML = `<tr><td colspan="6">${(res && res.message) || 'Unable to load users'}</td></tr>`;
+            }
+          })
+          .withFailureHandler(err => {
+            tbody.innerHTML = `<tr><td colspan="6">${err.message}</td></tr>`;
+          })
+          .listUsers({});
+      }
+
+      function handleUserSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const payload = Object.fromEntries(new FormData(form).entries());
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              showToast('User created.');
+              form.reset();
+              loadUsers();
+            } else {
+              handleError((res && res.message) || 'Unable to create user');
+            }
+          })
+          .withFailureHandler(err => handleError(err.message))
+          .createUserFromUI(payload);
+      }
+
+      function loadTools() {
+        const container = document.getElementById('toolsList');
+        container.innerHTML = '<div class="spinner"></div>';
+        const params = isRoleAtLeast(appState.session.user.role, 'ADMIN') ? { includeInactive: true } : {};
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              appState.tools = res.data || [];
+              renderTools();
+            } else {
+              container.innerHTML = `<p>${(res && res.message) || 'Unable to load tools'}</p>`;
+            }
+          })
+          .withFailureHandler(err => {
+            container.innerHTML = `<p>${err.message}</p>`;
+          })
+          .listTools(params);
+      }
+
+      function renderTools() {
+        const container = document.getElementById('toolsList');
+        if (!appState.tools.length) {
+          container.innerHTML = '<div class="card"><p>No tools yet.</p></div>';
+          return;
+        }
+        container.innerHTML = appState.tools.map(tool => `
+          <div class="card tool-card" data-id="${tool.id}">
+            <img src="${escapeHtml(tool.iconUrl || LOGO_URL)}" alt="${escapeHtml(tool.name)}">
+            <h3>${escapeHtml(tool.name)}</h3>
+            <p>${tool.isActive ? 'Active' : 'Inactive'}</p>
+            <div class="tool-actions">
+              <button class="primary" onclick="window.open('${escapeHtml(tool.toolUrl)}','_blank','noopener')">Open</button>
+              ${isRoleAtLeast(appState.session.user.role, 'ADMIN') ? `<button class="ghost" data-tool="${tool.id}" onclick="editTool('${tool.id}')">Edit</button>
+              <button class="danger" data-tool="${tool.id}" onclick="toggleToolActive('${tool.id}', ${tool.isActive})">${tool.isActive ? 'Deactivate' : 'Activate'}</button>` : ''}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function handleToolSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const payload = Object.fromEntries(new FormData(form).entries());
+        payload.sortOrder = payload.sortOrder ? Number(payload.sortOrder) : '';
+        payload.isActive = form.isActive.checked;
+        const handler = payload.id ? 'updateTool' : 'createTool';
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              showToast('Tool saved.');
+              form.reset();
+              form.isActive.checked = true;
+              document.getElementById('toolCancel').classList.add('hidden');
+              loadTools();
+            } else {
+              handleError((res && res.message) || 'Unable to save tool');
+            }
+          })
+          .withFailureHandler(err => handleError(err.message))
+          [handler](payload);
+      }
+
+      function resetToolForm() {
+        const form = document.getElementById('toolForm');
+        form.reset();
+        form.id.value = '';
+        form.isActive.checked = true;
+        document.getElementById('toolCancel').classList.add('hidden');
+      }
+
+      window.editTool = function (toolId) {
+        const tool = appState.tools.find(t => t.id === toolId);
+        if (!tool) return;
+        const form = document.getElementById('toolForm');
+        form.id.value = tool.id;
+        form.iconUrl.value = tool.iconUrl || '';
+        form.name.value = tool.name || '';
+        form.toolUrl.value = tool.toolUrl || '';
+        form.sortOrder.value = tool.sortOrder || '';
+        form.isActive.checked = !!tool.isActive;
+        document.getElementById('toolCancel').classList.remove('hidden');
+        showToast('Editing tool…');
+      };
+
+      window.toggleToolActive = function (toolId, isActive) {
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              showToast(isActive ? 'Tool deactivated.' : 'Tool activated.');
+              loadTools();
+            } else {
+              handleError((res && res.message) || 'Unable to update tool');
+            }
+          })
+          .withFailureHandler(err => handleError(err.message))
+          .updateTool({ id: toolId, isActive: !isActive });
+      };
+
+      function populateSettings() {
+        const form = document.getElementById('settingsForm');
+        const user = appState.session.user;
+        form.notificationEmail.value = user.notificationEmail || user.email;
+        const prefs = user.preferences || { instant: true, daily: true, weekly: true };
+        form.instant.checked = prefs.instant !== false;
+        form.daily.checked = prefs.daily !== false;
+        form.weekly.checked = prefs.weekly !== false;
+      }
+
+      function handleSettingsSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const payload = {
+          notificationEmail: form.notificationEmail.value.trim(),
+          instant: form.instant.checked,
+          daily: form.daily.checked,
+          weekly: form.weekly.checked
+        };
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              appState.session.user = res.data;
+              showToast('Notification settings saved.');
+              populateSettings();
+            } else {
+              handleError((res && res.message) || 'Unable to save settings');
+            }
+          })
+          .withFailureHandler(err => handleError(err.message))
+          .saveEmailSettings(payload);
+      }
+
+      function sendTestEmail() {
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              showToast('Test email sent.');
+            } else {
+              handleError((res && res.message) || 'Unable to send test email');
+            }
+          })
+          .withFailureHandler(err => handleError(err.message))
+          .sendTestEmail();
+      }
+
+      function markTutorialComplete() {
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              showToast('Tutorial marked complete.');
+              appState.session.user.tutorialSeen = true;
+            } else {
+              handleError((res && res.message) || 'Unable to update tutorial state');
+            }
+          })
+          .withFailureHandler(err => handleError(err.message))
+          .saveEmailSettings({ tutorialSeen: true });
+      }
+
+      function downloadTemplate() {
+        const headers = ['title', 'description', 'assignedTo', 'priority', 'status', 'dueDate', 'estimatedHours', 'tags', 'links'];
+        const csv = headers.join(',') + '\n';
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'auraflow_tasks_template.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      function loadUsersIfNeeded() {
+        if (!appState.loadedTabs.users) {
+          loadUsers();
+          appState.loadedTabs.users = true;
+        }
+      }
+      // Utility loaders for future lazy-loading hooks
+      function loadDashboardIfNeeded() { if (!appState.loadedTabs.dashboard) { loadDashboard(); appState.loadedTabs.dashboard = true; } }
+      function loadToolsIfNeeded() { if (!appState.loadedTabs.tools) { loadTools(); appState.loadedTabs.tools = true; } }
+    </script>
+  </body>
+</html>
